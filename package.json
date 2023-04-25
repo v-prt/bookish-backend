@@ -1,0 +1,27 @@
+{
+  "name": "bookish-backend",
+  "version": "1.0.0",
+  "description": "Server for Bookish mobile app, built with Node, Express, &amp; TypeScript.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start:dev": "npx nodemon"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/v-prt/bookish-backend.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/v-prt/bookish-backend/issues"
+  },
+  "homepage": "https://github.com/v-prt/bookish-backend#readme",
+  "devDependencies": {
+    "@types/node": "^18.16.0",
+    "nodemon": "^2.0.22",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.4"
+  }
+}
