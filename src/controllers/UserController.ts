@@ -133,8 +133,8 @@ export const getUser = async (req: Request, res: Response) => {
 }
 
 export const updateUser = async (req: Request, res: Response) => {
-  const userId = ObjectId(req.params.id)
-  const { email, username, currentPassword, newPassword } = req.body
+  const userId = new ObjectId(req.params.id)
+  const { email, currentPassword, newPassword } = req.body
 
   try {
     const filter = { _id: userId }
@@ -157,14 +157,9 @@ export const updateUser = async (req: Request, res: Response) => {
     const existingEmail: IUser | null = await User.findOne({
       email: { $regex: new RegExp(`^${email}$`, 'i') },
     })
-    const existingUsername: IUser | null = await User.findOne({
-      username: { $regex: new RegExp(`^${username}$`, 'i') },
-    })
 
     if (existingEmail && !existingEmail._id.equals(userId)) {
       return res.status(400).json({ message: 'That email is already in use' })
-    } else if (existingUsername && !existingUsername._id.equals(userId)) {
-      return res.status(400).json({ message: 'That username is taken' })
     } else {
       const update = {
         $set: updates,
@@ -183,7 +178,7 @@ export const updateUser = async (req: Request, res: Response) => {
 export const deleteUser = async (req: Request, res: Response) => {
   const { id } = req.params
   try {
-    const result = await User.deleteOne({ _id: ObjectId(id) })
+    const result = await User.deleteOne({ _id: new ObjectId(id) })
     return res.status(200).json({ data: result })
   } catch (err) {
     if (err instanceof Error) {
