@@ -8,6 +8,7 @@ const UserSchema: Schema = new Schema({
   email: { type: String, required: true },
   password: { type: String, required: true },
   joined: { type: Date, default: Date.now },
+  faveGenres: [{ type: String }],
 
   bookshelves: [{ type: ObjectId, ref: 'Shelf' }],
 })

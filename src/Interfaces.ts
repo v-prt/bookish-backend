@@ -6,6 +6,7 @@ export interface IUser extends Document {
   email: string
   password: string
   joined: Date
+  faveGenres: string[]
 
   bookshelves: IShelf[]
 }
