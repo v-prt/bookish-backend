@@ -9,6 +9,13 @@ import {
   deleteUser,
 } from './controllers/UserController'
 
+import {
+  createBook,
+  userGetBookByVolumeId,
+  userGetBookshelves,
+  updateBook,
+} from './controllers/BookController'
+
 export const routes: Router = Router()
 const API_URL = process.env.API_URL
 
@@ -19,3 +26,7 @@ routes
   .get(`${API_URL}/users/:id`, getUser)
   .put(`${API_URL}/users/:id`, updateUser)
   .delete(`${API_URL}/users/:id`, deleteUser)
+  .post(`${API_URL}/books`, createBook)
+  .get(`${API_URL}/books/:userId/:volumeId`, userGetBookByVolumeId)
+  .get(`${API_URL}/bookshelves/:userId/:bookshelf`, userGetBookshelves)
+  .put(`${API_URL}/books/:id`, updateBook)
