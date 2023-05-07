@@ -18,5 +18,8 @@ export interface IBook extends Document {
   owned: boolean
   read?: Date
   rating?: number
-  review?: string
+  review?: {
+    date: Date
+    text: string
+  }
 }

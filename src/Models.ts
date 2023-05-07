@@ -19,8 +19,8 @@ const BookSchema: Schema = new Schema({
   bookshelf: { type: String, required: true }, // bookshelf name (read, currently reading, want to read)
   owned: { type: Boolean, default: false }, // to indicate if user owns the book
   read: { type: Date }, // date user finished reading book (can be used to indicate if user had read book)
-  rating: { type: Number }, // user's rating
-  review: { type: String }, // user's review
+  rating: { type: Number }, // user's rating (1-5)
+  review: { date: { type: Date }, text: { type: String } }, // user's review
 })
 
 export const User = model<IUser>('User', UserSchema)

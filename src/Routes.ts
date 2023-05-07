@@ -29,4 +29,4 @@ routes
   .post(`${API_URL}/books`, createBook)
   .get(`${API_URL}/books/:userId/:volumeId`, userGetBookByVolumeId)
   .get(`${API_URL}/bookshelves/:userId/:bookshelf`, userGetBookshelves)
-  .put(`${API_URL}/books/:id`, updateBook)
+  .put(`${API_URL}/books/:bookId`, updateBook)
