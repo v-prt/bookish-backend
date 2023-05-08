@@ -46,21 +46,33 @@ export const userGetBookByVolumeId = async (req: Request, res: Response) => {
 // TODO: pagination
 export const userGetBookshelves = async (req: Request, res: Response) => {
   try {
-    const { userId, bookshelf } = req.params
+    const { userId } = req.params
+    const { bookshelf } = req.query
+
     const books: IBook[] = await Book.find({ userId, bookshelf })
+    const totalResults = await Book.count({ userId, bookshelf })
 
     // for each book, get info from google books api
-    const booksWithInfo = await Promise.all(
+    const results = await Promise.all(
       books.map(async book => {
-        const response = await axios.get(
+        const { data } = await axios.get(
           `https://www.googleapis.com/books/v1/volumes/${book.volumeId}`
         )
-        return { ...book.toObject(), ...response.data } // merge book info with book object
+        return {
+          id: book.id,
+          title: data.volumeInfo.title,
+          image: data.volumeInfo.imageLinks?.thumbnail,
+          author: data.volumeInfo.authors?.[0],
+          averageRating: data.volumeInfo.averageRating,
+          ratingsCount: data.volumeInfo.ratingsCount,
+          ...book,
+        }
       })
     )
 
     return res.status(200).json({
-      data: booksWithInfo,
+      books: results,
+      totalResults,
     })
   } catch (err) {
     if (err instanceof Error) {

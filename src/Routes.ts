@@ -28,5 +28,5 @@ routes
   .delete(`${API_URL}/users/:id`, deleteUser)
   .post(`${API_URL}/books`, createBook)
   .get(`${API_URL}/books/:userId/:volumeId`, userGetBookByVolumeId)
-  .get(`${API_URL}/bookshelves/:userId/:bookshelf`, userGetBookshelves)
+  .get(`${API_URL}/bookshelf/:userId`, userGetBookshelves)
   .put(`${API_URL}/books/:bookId`, updateBook)
