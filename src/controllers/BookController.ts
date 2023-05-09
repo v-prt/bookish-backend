@@ -49,7 +49,7 @@ export const userGetBookshelves = async (req: Request, res: Response) => {
     const { userId } = req.params
     const { bookshelf } = req.query
 
-    const books: IBook[] = await Book.find({ userId, bookshelf })
+    const books: IBook[] = await Book.find({ userId, bookshelf }).lean()
     const totalResults = await Book.count({ userId, bookshelf })
 
     // for each book, get info from google books api
@@ -59,7 +59,6 @@ export const userGetBookshelves = async (req: Request, res: Response) => {
           `https://www.googleapis.com/books/v1/volumes/${book.volumeId}`
         )
         return {
-          id: book.id,
           title: data.volumeInfo.title,
           image: data.volumeInfo.imageLinks?.thumbnail,
           author: data.volumeInfo.authors?.[0],
