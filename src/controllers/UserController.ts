@@ -1,6 +1,6 @@
 import { Response, Request } from 'express'
 import { IUser } from '../Interfaces'
-import { User } from '../Models'
+import { User, Book } from '../Models'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import * as dotenv from 'dotenv'
@@ -120,7 +120,15 @@ export const getUser = async (req: Request, res: Response) => {
   try {
     const user: IUser | null = await User.findOne({ _id: new ObjectId(req.params.id) }).lean()
     if (user) {
-      return res.status(200).json({ user })
+      // include user's books
+      const books = await Book.find({ userId: user._id }).lean()
+
+      return res.status(200).json({
+        user: {
+          ...user,
+          books,
+        },
+      })
     } else {
       return res.status(404).json({ message: 'User not found' })
     }
