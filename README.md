@@ -59,13 +59,39 @@ const BookSchema: Schema = new Schema({
 
    ```plaintext
    MONGO_URI=<your-mongodb-uri>
-   PORT=<your-server-port>
    TOKEN_SECRET=<your-generated-key>
+   PORT=<your-server-port>
    ```
 
-   Replace `<your-mongodb-uri>` with your MongoDB connection URI, `<your-server-port>` with the desired port number for the server, and `<your-generated-key>` with the generated token secret (see below).
+   Replace `<your-mongodb-uri>` with your MongoDB connection URI, `<your-generated-key>` with the generated token secret, and `<your-server-port>` with your desired port number for the server. See below for more details on getting your own MongoDB URI and token secret.
 
-   Make sure to keep sensitive information, such as the MongoDB URI and token secret, secure and avoid sharing them publicly or committing them to version control.
+   Make sure to keep sensitive information secure and avoid sharing them publicly or committing them to version control.
+
+### MongoDB URI
+
+The `MONGO_URI` environment variable specifies the connection URI for your MongoDB database. Follow the steps below to obtain your MongoDB URI:
+
+1. Create a MongoDB Atlas account or access your existing account.
+2. Create a new project or select an existing project.
+3. Navigate to the "Clusters" section and click on "Connect" for your desired cluster.
+4. Choose "Connect your application" as the connection method.
+5. Select the appropriate driver (e.g., Node.js) and version.
+6. Copy the provided connection string (the MongoDB URI).
+
+   Example MongoDB URI format:
+   ```
+   mongodb+srv://<username>:<password>@<cluster-address>/<database-name>?retryWrites=true&w=majority
+   ```
+
+7. Replace `<username>`, `<password>`, `<cluster-address>`, and `<database-name>` with your actual credentials and database information.
+
+8. Set the `MONGO_URI` environment variable in your development environment or deployment platform to the obtained MongoDB URI.
+
+   - For local development, paste the value in the `.env` file as shown above.
+
+   - For deployment, consult your deployment platform's documentation on how to set environment variables. Set the `MONGO_URI` variable to the obtained MongoDB URI value.
+
+9. Save the changes and restart your server for the new configuration to take effect.
 
 ### Token Secret
 
@@ -89,11 +115,9 @@ The `TOKEN_SECRET` environment variable is required for signing JWT tokens in or
 
    - For deployment, consult your deployment platform's documentation on how to set environment variables. Set the `TOKEN_SECRET` variable to the generated token secret value.
 
-   Make sure to keep the token secret value secure and avoid sharing it publicly or committing it to version control.
-
 5. Save the changes and restart your server for the new configuration to take effect.
 
-Now the necessary environment variables are properly set, allowing your backend to connect to MongoDB, listen on the specified port, and sign/verify JWT tokens securely.
+Now the necessary environment variables are properly set, allowing your backend to connect to MongoDB, sign/verify JWT tokens securely, and listen on the specified port.
 
 ## Usage
 
