@@ -158,6 +158,6 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 - [TypeScript](https://www.typescriptlang.org/)
 - [MongoDB](https://www.mongodb.com/)
 - [Node.js](https://nodejs.org/)
-- [Express](https://expressjs.com/)
+- [Express.js](https://expressjs.com/)
 - [Mongoose](https://mongoosejs.com/)
 - [Google Books API](https://developers.google.com/books)
