@@ -186,12 +186,16 @@ export const updateUser = async (req: Request, res: Response) => {
 export const deleteUser = async (req: Request, res: Response) => {
   const { id } = req.params
   try {
-    const result = await User.deleteOne({ _id: new ObjectId(id) })
-    return res.status(200).json({ data: result })
+    const deleteUserPromise = User.deleteOne({ _id: new ObjectId(id) })
+    const deleteBooksPromise = Book.deleteMany({ userId: new ObjectId(id) })
+
+    await Promise.all([deleteUserPromise, deleteBooksPromise])
+
+    return res
+      .status(200)
+      .json({ message: 'Your account and books have been deleted successfully.' })
   } catch (err) {
-    if (err instanceof Error) {
-      console.error(err)
-      return res.status(500).json({ message: 'Internal server error' })
-    }
+    console.error(err)
+    return res.status(500).json({ message: 'Internal server error' })
   }
 }

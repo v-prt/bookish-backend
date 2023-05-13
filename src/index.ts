@@ -1,8 +1,8 @@
-import express, { Express, Request, Response } from 'express'
+import express, { Express } from 'express'
 import mongoose from 'mongoose'
 import morgan from 'morgan'
 import dotenv from 'dotenv'
-import { routes } from './routes'
+import { routes } from './Routes'
 
 dotenv.config()
 

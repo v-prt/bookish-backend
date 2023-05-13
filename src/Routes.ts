@@ -14,6 +14,7 @@ import {
   userGetBookByVolumeId,
   userGetBookshelves,
   updateBook,
+  deleteBook,
 } from './controllers/BookController'
 
 export const routes: Router = Router()
@@ -30,3 +31,4 @@ routes
   .get(`${API_URL}/books/:userId/:volumeId`, userGetBookByVolumeId)
   .get(`${API_URL}/bookshelf/:userId`, userGetBookshelves)
   .put(`${API_URL}/books/:bookId`, updateBook)
+  .delete(`${API_URL}/books/:bookId`, deleteBook)

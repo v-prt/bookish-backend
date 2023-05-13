@@ -99,3 +99,17 @@ export const updateBook = async (req: Request, res: Response) => {
     }
   }
 }
+
+export const deleteBook = async (req: Request, res: Response) => {
+  const { bookId } = req.params
+
+  try {
+    await Book.deleteOne({ _id: bookId })
+    return res.status(200).json({ message: 'Book removed' })
+  } catch (err) {
+    if (err instanceof Error) {
+      console.error(err)
+      return res.status(500).json({ message: 'Internal server error' })
+    }
+  }
+}
