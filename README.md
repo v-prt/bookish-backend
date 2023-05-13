@@ -59,17 +59,17 @@ const BookSchema: Schema = new Schema({
 
    ```plaintext
    MONGO_URI=<your-mongodb-uri>
-   PORT=<server-port>
-   TOKEN_SECRET=<generated-key>
+   PORT=<your-server-port>
+   TOKEN_SECRET=<your-generated-key>
    ```
 
-   Replace `<your-mongodb-uri>` with your MongoDB connection URI, `<server-port>` with the desired port number for the server, and `<generated-token-secret>` with the generated key (see below).
+   Replace `<your-mongodb-uri>` with your MongoDB connection URI, `<your-server-port>` with the desired port number for the server, and `<your-generated-key>` with the generated token secret (see below).
 
    Make sure to keep sensitive information, such as the MongoDB URI and token secret, secure and avoid sharing them publicly or committing them to version control.
 
 ### Token Secret
 
-The `TOKEN_SECRET` environment variable is used for signing JWT tokens. Follow the steps below to generate a secure key:
+The `TOKEN_SECRET` environment variable is required for signing JWT tokens in order to authenticate users. Follow the steps below to generate a secure key:
 
 1. Open a terminal or command prompt.
 
@@ -105,6 +105,10 @@ Now the necessary environment variables are properly set, allowing your backend 
 ## API Documentation
 
 The API documentation is available at `<server-url>/api-docs` when the server is running. It provides details about the available endpoints and how to interact with them.
+
+## Client Setup
+
+The client for Bookish is available in the [bookish-frontend](https://github.com/v-prt/bookish-frontend) repository. Once you have your backend running, you may set up and run the frontend application.
 
 ## Contributing
 
