@@ -120,7 +120,10 @@ Please ensure that your code adheres to the existing code style and includes app
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
 
 ## Acknowledgments
 
