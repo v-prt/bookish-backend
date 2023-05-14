@@ -2,8 +2,6 @@ import { Response, Request } from 'express'
 import { IBook } from '../Interfaces'
 import { Book } from '../Models'
 import axios from 'axios'
-const mongodb = require('mongodb')
-const { ObjectId } = mongodb
 
 // (CREATE/POST) ADD NEW BOOK
 export const createBook = async (req: Request, res: Response) => {

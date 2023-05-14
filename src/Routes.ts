@@ -18,7 +18,7 @@ import {
 } from './controllers/BookController'
 
 export const routes: Router = Router()
-const API_URL = process.env.API_URL
+const API_URL = '/bookish-api/v1'
 
 routes
   .post(`${API_URL}/users`, createUser)
