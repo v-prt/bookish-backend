@@ -7,6 +7,7 @@ import {
   getUser,
   updateUser,
   deleteUser,
+  getReadingActivity,
 } from './controllers/UserController'
 
 import {
@@ -27,6 +28,7 @@ routes
   .get(`${API_URL}/users/:id`, getUser)
   .put(`${API_URL}/users/:id`, updateUser)
   .delete(`${API_URL}/users/:id`, deleteUser)
+  .get(`${API_URL}/users/:id/reading-activity`, getReadingActivity)
   .post(`${API_URL}/books`, createBook)
   .get(`${API_URL}/books/:userId/:volumeId`, userGetBookByVolumeId)
   .get(`${API_URL}/bookshelf/:userId`, userGetBookshelves)

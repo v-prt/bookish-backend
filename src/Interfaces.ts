@@ -16,7 +16,7 @@ export interface IBook extends Document {
   userId: string
   bookshelf: string
   owned: boolean
-  read?: Date
+  dateRead?: Date
   rating?: number
   review?: {
     date: Date

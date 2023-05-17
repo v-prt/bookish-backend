@@ -4,6 +4,7 @@ import { User, Book } from '../Models'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import * as dotenv from 'dotenv'
+import axios from 'axios'
 dotenv.config()
 const mongodb = require('mongodb')
 const { ObjectId } = mongodb
@@ -194,6 +195,108 @@ export const deleteUser = async (req: Request, res: Response) => {
     return res
       .status(200)
       .json({ message: 'Your account and books have been deleted successfully.' })
+  } catch (err) {
+    console.error(err)
+    return res.status(500).json({ message: 'Internal server error' })
+  }
+}
+
+export const getReadingActivity = async (req: Request, res: Response) => {
+  const { id } = req.params
+  const { dateRange } = req.query // all-time, this-year
+
+  try {
+    const books = await Book.find({
+      userId: id,
+      bookshelf: 'Read',
+      dateRead: {
+        $gte: new Date(dateRange === 'all-time' ? 0 : new Date().getFullYear(), 0, 1),
+      },
+    })
+      .sort({ dateRead: -1 })
+      .lean()
+
+    // for each book, get info from google books api
+    const results = await Promise.all(
+      books.map(async book => {
+        const { data } = await axios.get(
+          `https://www.googleapis.com/books/v1/volumes/${book.volumeId}`
+        )
+        return {
+          title: data.volumeInfo.title,
+          image: data.volumeInfo.imageLinks?.thumbnail,
+          author: data.volumeInfo.authors?.[0],
+          averageRating: data.volumeInfo.averageRating,
+          ratingsCount: data.volumeInfo.ratingsCount,
+          pageCount: data.volumeInfo.pageCount,
+          categories: data.volumeInfo.categories,
+          ...book,
+        }
+      })
+    )
+
+    // READING ANALYTICS
+    const totalPages = results.reduce((acc: number, book: any) => {
+      return acc + book.pageCount
+    }, 0)
+
+    // get top category
+    const categories = results.reduce((acc: any, book: any) => {
+      return [...acc, ...(book.categories || ['Uncategorized'])]
+    }, [])
+
+    // for each category, remove slashes to clean up google books api format and flatten array
+    let cleanedCats = categories.map((string: string) => string.split(' / ')).flat()
+
+    // count occurrences of each category
+    const categoryCounts = cleanedCats.reduce((acc: any, cat: any) => {
+      if (!acc[cat]) {
+        acc[cat] = 1
+      } else {
+        acc[cat]++
+      }
+      return acc
+    }, {})
+
+    // ignore common categories like fiction, nonfiction, etc.
+    const commonCats = ['Fiction', 'Nonfiction', 'General']
+    commonCats.forEach(cat => delete categoryCounts[cat])
+
+    // get key with highest value
+    const topCategory = Object.keys(categoryCounts).reduce((a, b) =>
+      categoryCounts[a] > categoryCounts[b] ? a : b
+    )
+
+    // count occurrences of each author
+    const authors = results.reduce((acc: any, book: any) => {
+      return [...acc, book.author]
+    }, [])
+
+    const authorCounts = authors.reduce((acc: any, author: any) => {
+      if (!acc[author]) {
+        acc[author] = 1
+      } else {
+        acc[author]++
+      }
+      return acc
+    }, {})
+
+    let topAuthor = Object.keys(authorCounts).reduce((a, b) =>
+      authorCounts[a] > authorCounts[b] ? a : b
+    )
+
+    // only return top author if they appear more than once
+    if (authorCounts[topAuthor] === 1) {
+      topAuthor = ''
+    }
+
+    return res.status(200).json({
+      totalBooks: results.length,
+      totalPages,
+      topCategory,
+      topAuthor,
+      // books: results,
+    })
   } catch (err) {
     console.error(err)
     return res.status(500).json({ message: 'Internal server error' })
