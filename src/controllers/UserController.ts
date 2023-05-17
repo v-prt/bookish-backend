@@ -235,15 +235,19 @@ export const getReadingActivity = async (req: Request, res: Response) => {
       })
     )
 
-    // READING ANALYTICS
-    const totalPages = results.reduce((acc: number, book: any) => {
-      return acc + book.pageCount
-    }, 0)
+    const recentlyRead = results.slice(0, 5) // most recent 5 books
 
-    // get top category
-    const categories = results.reduce((acc: any, book: any) => {
-      return [...acc, ...(book.categories || ['Uncategorized'])]
-    }, [])
+    // READING ANALYTICS
+    const { totalPages, categories, authors } = results.reduce(
+      (acc, book) => {
+        return {
+          totalPages: acc.totalPages + book.pageCount,
+          categories: [...acc.categories, ...(book.categories || ['Uncategorized'])],
+          authors: [...acc.authors, book.author],
+        }
+      },
+      { totalPages: 0, categories: [] as string[], authors: [] as string[] }
+    )
 
     // for each category, remove slashes to clean up google books api format and flatten array
     let cleanedCats = categories.map((string: string) => string.split(' / ')).flat()
@@ -258,20 +262,16 @@ export const getReadingActivity = async (req: Request, res: Response) => {
       return acc
     }, {})
 
-    // ignore common categories like fiction, nonfiction, etc.
+    // ignore common categories
     const commonCats = ['Fiction', 'Nonfiction', 'General']
     commonCats.forEach(cat => delete categoryCounts[cat])
 
-    // get key with highest value
+    // get key with highest value to find top category
     const topCategory = Object.keys(categoryCounts).reduce((a, b) =>
       categoryCounts[a] > categoryCounts[b] ? a : b
     )
 
     // count occurrences of each author
-    const authors = results.reduce((acc: any, book: any) => {
-      return [...acc, book.author]
-    }, [])
-
     const authorCounts = authors.reduce((acc: any, author: any) => {
       if (!acc[author]) {
         acc[author] = 1
@@ -286,7 +286,7 @@ export const getReadingActivity = async (req: Request, res: Response) => {
     )
 
     // only return top author if they appear more than once
-    if (authorCounts[topAuthor] === 1) {
+    if (authorCounts[topAuthor] <= 1) {
       topAuthor = ''
     }
 
@@ -295,7 +295,7 @@ export const getReadingActivity = async (req: Request, res: Response) => {
       totalPages,
       topCategory,
       topAuthor,
-      // books: results,
+      recentlyRead,
     })
   } catch (err) {
     console.error(err)
