@@ -12,6 +12,7 @@ import {
 
 import {
   createBook,
+  searchBooks,
   userGetBookByVolumeId,
   userGetBookshelves,
   updateBook,
@@ -30,6 +31,7 @@ routes
   .delete(`${API_URL}/users/:id`, deleteUser)
   .get(`${API_URL}/users/:id/reading-activity`, getReadingActivity)
   .post(`${API_URL}/books`, createBook)
+  .get(`${API_URL}/google-books/:userId`, searchBooks)
   .get(`${API_URL}/books/:userId/:volumeId`, userGetBookByVolumeId)
   .get(`${API_URL}/bookshelf/:userId`, userGetBookshelves)
   .put(`${API_URL}/books/:bookId`, updateBook)
