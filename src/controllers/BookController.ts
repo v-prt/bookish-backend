@@ -22,12 +22,59 @@ export const createBook = async (req: Request, res: Response) => {
   }
 }
 
+export const searchBooks = async (req: Request, res: Response) => {
+  const { userId } = req.params
+  const { searchText, pageParam } = req.query
+
+  const page = Number(pageParam) || 0
+
+  try {
+    const maxResults = 20
+    const startIndex = page * maxResults
+
+    const response = await axios.get(
+      `https://www.googleapis.com/books/v1/volumes?q=${searchText}&startIndex=${startIndex}&maxResults=${maxResults}`
+    )
+
+    const { items, totalItems } = response.data
+
+    const structuredBooks = await Promise.all(
+      items?.map(async (book: any) => {
+        const userBook = await Book.findOne({ userId, volumeId: book.id }).lean()
+
+        return {
+          ...userBook,
+          volumeId: book.id,
+          title: book.volumeInfo.title,
+          image: book.volumeInfo.imageLinks?.thumbnail,
+          author: book.volumeInfo.authors?.[0],
+          averageRating: book.volumeInfo.averageRating,
+          ratingsCount: book.volumeInfo.ratingsCount,
+        }
+      })
+    )
+
+    const nextCursor = totalItems > maxResults * page ? page + 1 : null
+
+    res.json({
+      items: structuredBooks,
+      totalItems,
+      nextCursor,
+    })
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ message: 'An error occurred while processing the request.' })
+  }
+}
+
 // (READ/GET) GET USER'S BOOK BY USER ID & VOLUME ID
 export const userGetBookByVolumeId = async (req: Request, res: Response) => {
   try {
     const { userId, volumeId } = req.params
+    console.log(userId, volumeId)
 
     const book = await Book.findOne({ userId, volumeId })
+    console.log(book)
 
     return res.status(200).json({
       book,
