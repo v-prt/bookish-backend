@@ -23,21 +23,18 @@ export const createBook = async (req: Request, res: Response) => {
 }
 
 export const searchBooks = async (req: Request, res: Response) => {
-  // FIXME: pages not working properly (totalItems doubles after each page and duplicate books appear)
   const { userId } = req.params
   const { searchText, pageParam } = req.query
 
   const page = Number(pageParam) || 0
 
   try {
-    const maxResults = 20 // Specify the desired number of results per page
-    const startIndex = page * maxResults // Specify the start index of the search results to return
+    const maxResults = 20
+    const startIndex = page * maxResults
 
     const response = await axios.get(
       `https://www.googleapis.com/books/v1/volumes?q=${searchText}&startIndex=${startIndex}&maxResults=${maxResults}`
     )
-
-    //  console.log(response.data)
 
     const { items, totalItems } = response.data
 
@@ -57,15 +54,7 @@ export const searchBooks = async (req: Request, res: Response) => {
       })
     )
 
-    // const booksWithImages = structuredBooks.filter((book: any) => book.image !== undefined)
-
     const nextCursor = totalItems > maxResults * page ? page + 1 : null
-
-    console.log('page', page)
-    console.log('startIndex', startIndex)
-    console.log('structuredBooks', structuredBooks?.length)
-    console.log('totalItems', totalItems)
-    console.log('nextCursor', nextCursor)
 
     res.json({
       items: structuredBooks,
