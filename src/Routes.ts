@@ -8,13 +8,14 @@ import {
   updateUser,
   deleteUser,
   getReadingActivity,
+  getRecommendedBooksByGenre,
 } from './controllers/UserController'
 
 import {
   createBook,
   searchBooks,
-  userGetBookByVolumeId,
-  userGetBookshelves,
+  getBook,
+  getBookshelf,
   updateBook,
   deleteBook,
 } from './controllers/BookController'
@@ -30,9 +31,10 @@ routes
   .put(`${API_URL}/users/:id`, updateUser)
   .delete(`${API_URL}/users/:id`, deleteUser)
   .get(`${API_URL}/users/:id/reading-activity`, getReadingActivity)
+  .get(`${API_URL}/users/:id/recommended-books`, getRecommendedBooksByGenre)
   .post(`${API_URL}/books`, createBook)
   .get(`${API_URL}/google-books/:userId`, searchBooks)
-  .get(`${API_URL}/books/:userId/:volumeId`, userGetBookByVolumeId)
-  .get(`${API_URL}/bookshelf/:userId`, userGetBookshelves)
+  .get(`${API_URL}/books/:userId/:volumeId`, getBook)
+  .get(`${API_URL}/bookshelf/:userId/:page`, getBookshelf)
   .put(`${API_URL}/books/:bookId`, updateBook)
   .delete(`${API_URL}/books/:bookId`, deleteBook)

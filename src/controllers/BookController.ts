@@ -54,12 +54,12 @@ export const searchBooks = async (req: Request, res: Response) => {
       })
     )
 
-    const nextCursor = totalItems > maxResults * page ? page + 1 : null
+    const nextPage = totalItems > maxResults * page ? page + 1 : null
 
     res.json({
       items: structuredBooks,
       totalItems,
-      nextCursor,
+      nextPage,
     })
   } catch (error) {
     console.error(error)
@@ -68,7 +68,7 @@ export const searchBooks = async (req: Request, res: Response) => {
 }
 
 // (READ/GET) GET USER'S BOOK BY USER ID & VOLUME ID
-export const userGetBookByVolumeId = async (req: Request, res: Response) => {
+export const getBook = async (req: Request, res: Response) => {
   try {
     const { userId, volumeId } = req.params
     console.log(userId, volumeId)
@@ -88,14 +88,20 @@ export const userGetBookByVolumeId = async (req: Request, res: Response) => {
 }
 
 // (READ/GET) GET USER'S BOOKS BY USER ID & BOOKSHELF
-// TODO: pagination
-export const userGetBookshelves = async (req: Request, res: Response) => {
+export const getBookshelf = async (req: Request, res: Response) => {
   try {
-    const { userId } = req.params
+    const { userId, page } = req.params
     const { bookshelf } = req.query
 
-    const books: IBook[] = await Book.find({ userId, bookshelf }).lean()
-    const totalResults = await Book.count({ userId, bookshelf })
+    const limit = 20
+    const skip = (Number(page) - 1) * limit
+
+    const totalBooks = await Book.count({ userId, bookshelf })
+    const books: IBook[] = await Book.find({ userId, bookshelf })
+      .skip(skip)
+      .limit(limit)
+      .sort({ dateRead: -1 })
+      .lean()
 
     // for each book, get info from google books api
     const results = await Promise.all(
@@ -114,9 +120,12 @@ export const userGetBookshelves = async (req: Request, res: Response) => {
       })
     )
 
+    const nextPage = totalBooks > limit * Number(page) ? Number(page) + 1 : null
+
     return res.status(200).json({
       books: results,
-      totalResults,
+      totalBooks,
+      nextPage,
     })
   } catch (err) {
     if (err instanceof Error) {

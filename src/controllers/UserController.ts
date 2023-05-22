@@ -1,5 +1,5 @@
 import { Response, Request } from 'express'
-import { IUser } from '../Interfaces'
+import { IBook, IUser } from '../Interfaces'
 import { User, Book } from '../Models'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
@@ -297,6 +297,62 @@ export const getReadingActivity = async (req: Request, res: Response) => {
       topAuthor,
       recentlyRead,
     })
+  } catch (err) {
+    console.error(err)
+    return res.status(500).json({ message: 'Internal server error' })
+  }
+}
+
+export const getRecommendedBooksByGenre = async (req: Request, res: Response) => {
+  const { id } = req.params
+  const { genre } = req.query
+
+  try {
+    // improve results from google books api by searching for "highly rated" books
+    const searchText = `highly rated ${genre} books`
+    const maxResults = 6
+
+    let recommendedBooks: any[] = []
+
+    let startIndex = 0
+    while (recommendedBooks.length < maxResults) {
+      const { data } = await axios.get(
+        `https://www.googleapis.com/books/v1/volumes?q=${searchText}&maxResults=${maxResults}&startIndex=${startIndex}`
+      )
+
+      const filteredBooks = await Promise.all(
+        data.items.map(async (book: any) => {
+          // ignore books that are already in user's bookshelves
+          const existingBook: IBook | null = await Book.findOne({
+            userId: new ObjectId(id),
+            volumeId: book.id,
+          })
+          return existingBook
+            ? null
+            : {
+                // structured book
+                volumeId: book.id,
+                title: book.volumeInfo.title,
+                image: book.volumeInfo.imageLinks?.thumbnail,
+                author: book.volumeInfo.authors?.[0],
+                averageRating: book.volumeInfo.averageRating,
+                ratingsCount: book.volumeInfo.ratingsCount,
+              }
+        })
+      )
+
+      // remove null values and add to recommendedBooks array
+      filteredBooks.forEach(book => {
+        if (!!book && recommendedBooks.length < maxResults) {
+          recommendedBooks.push(book)
+        }
+      })
+
+      // increment startIndex to get next page of results
+      startIndex = startIndex + maxResults
+    }
+
+    return res.status(200).json({ recommendedBooks })
   } catch (err) {
     console.error(err)
     return res.status(500).json({ message: 'Internal server error' })
