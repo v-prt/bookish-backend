@@ -14,13 +14,16 @@ const UserSchema: Schema = new Schema({
 })
 
 const BookSchema: Schema = new Schema({
-  volumeId: { type: String, required: true }, // google books api volume id (for fetching book info)
-  userId: { type: ObjectId, ref: 'User' }, // link user to book
+  title: { type: String, required: true },
+  author: { type: String, required: true },
   bookshelf: { type: String, required: true }, // bookshelf name (read, currently reading, want to read)
   owned: { type: Boolean, default: false }, // to indicate if user owns the book
   dateRead: { type: Date }, // date user finished reading book
   rating: { type: Number }, // user's rating (1-5)
   review: { date: { type: Date }, text: { type: String } }, // user's review
+
+  volumeId: { type: String, required: true }, // google books api volume id (for fetching book info)
+  userId: { type: ObjectId, ref: 'User' }, // link user to book
 })
 
 export const User = model<IUser>('User', UserSchema)

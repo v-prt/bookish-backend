@@ -12,8 +12,8 @@ export interface IUser extends Document {
 }
 
 export interface IBook extends Document {
-  volumeId: string
-  userId: string
+  title: string
+  author: string
   bookshelf: string
   owned: boolean
   dateRead?: Date
@@ -22,4 +22,7 @@ export interface IBook extends Document {
     date: Date
     text: string
   }
+
+  volumeId: string
+  userId: string
 }

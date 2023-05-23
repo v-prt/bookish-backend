@@ -96,8 +96,16 @@ export const getBookshelf = async (req: Request, res: Response) => {
     const limit = 20
     const skip = (Number(page) - 1) * limit
 
-    const totalBooks = await Book.count({ userId, bookshelf })
-    const books: IBook[] = await Book.find({ userId, bookshelf })
+    let where = {}
+
+    if (bookshelf === 'Owned') {
+      where = { owned: true }
+    } else {
+      where = { bookshelf }
+    }
+
+    const totalBooks = await Book.count({ userId, ...where })
+    const books: IBook[] = await Book.find({ userId, ...where })
       .skip(skip)
       .limit(limit)
       .sort({ dateRead: -1 })
@@ -110,9 +118,9 @@ export const getBookshelf = async (req: Request, res: Response) => {
           `https://www.googleapis.com/books/v1/volumes/${book.volumeId}`
         )
         return {
-          title: data.volumeInfo.title,
+          // title: data.volumeInfo.title,
           image: data.volumeInfo.imageLinks?.thumbnail,
-          author: data.volumeInfo.authors?.[0],
+          // author: data.volumeInfo.authors?.[0],
           averageRating: data.volumeInfo.averageRating,
           ratingsCount: data.volumeInfo.ratingsCount,
           ...book,

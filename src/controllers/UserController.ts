@@ -223,9 +223,7 @@ export const getReadingActivity = async (req: Request, res: Response) => {
           `https://www.googleapis.com/books/v1/volumes/${book.volumeId}`
         )
         return {
-          title: data.volumeInfo.title,
           image: data.volumeInfo.imageLinks?.thumbnail,
-          author: data.volumeInfo.authors?.[0],
           averageRating: data.volumeInfo.averageRating,
           ratingsCount: data.volumeInfo.ratingsCount,
           pageCount: data.volumeInfo.pageCount,
