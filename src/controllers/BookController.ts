@@ -91,7 +91,7 @@ export const getBook = async (req: Request, res: Response) => {
 export const getBookshelf = async (req: Request, res: Response) => {
   try {
     const { userId, page } = req.params
-    const { bookshelf } = req.query
+    const { bookshelf, search } = req.query
 
     const limit = 20
     const skip = (Number(page) - 1) * limit
@@ -102,6 +102,17 @@ export const getBookshelf = async (req: Request, res: Response) => {
       where = { owned: true }
     } else {
       where = { bookshelf }
+    }
+
+    if (search) {
+      where = {
+        ...where,
+        // search by title or author (case insensitive)
+        $or: [
+          { title: { $regex: search, $options: 'i' } },
+          { author: { $regex: search, $options: 'i' } },
+        ],
+      }
     }
 
     const totalBooks = await Book.count({ userId, ...where })
