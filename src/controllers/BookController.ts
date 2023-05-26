@@ -186,3 +186,37 @@ export const deleteBook = async (req: Request, res: Response) => {
     }
   }
 }
+
+// TODO: work in progress
+export const getRatingsByUser = async (req: Request, res: Response) => {
+  const { id } = req.params
+  const page = Number(req.query.page) || 1
+
+  try {
+    const ratedBooks = await Book.find({ userId: id, rating: { $exists: true } })
+      .sort({ dateRead: -1 })
+      .lean()
+
+    // for each book, get info from google books api
+    const results = await Promise.all(
+      ratedBooks.map(async book => {
+        const { data } = await axios.get(
+          `https://www.googleapis.com/books/v1/volumes/${book.volumeId}`
+        )
+        return {
+          image: data.volumeInfo.imageLinks?.thumbnail,
+          averageRating: data.volumeInfo.averageRating,
+          ratingsCount: data.volumeInfo.ratingsCount,
+          pageCount: data.volumeInfo.pageCount,
+          categories: data.volumeInfo.categories,
+          ...book,
+        }
+      })
+    )
+
+    return res.status(200).json({ ratings: results })
+  } catch (err) {
+    console.error(err)
+    return res.status(500).json({ message: 'Internal server error' })
+  }
+}

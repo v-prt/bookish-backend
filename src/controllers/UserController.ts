@@ -120,15 +120,84 @@ export const verifyToken = async (req: Request, res: Response) => {
 export const getUser = async (req: Request, res: Response) => {
   try {
     const user: IUser | null = await User.findOne({ _id: new ObjectId(req.params.id) }).lean()
+
     if (user) {
-      // include user's books
-      const books = await Book.find({ userId: user._id }).lean()
+      // TODO: move overview of books to separate endpoint to reduce load time
+
+      const numOwned = await Book.countDocuments({ userId: user._id, owned: true })
+      let ownedBooks = await Book.find({ userId: user._id, owned: true }).limit(3).lean()
+
+      const numWantToRead = await Book.countDocuments({
+        userId: user._id,
+        bookshelf: 'Want to read',
+      })
+      let wantToReadBooks = await Book.find({ userId: user._id, bookshelf: 'Want to read' })
+        .limit(3)
+        .lean()
+
+      const numRead = await Book.countDocuments({ userId: user._id, bookshelf: 'Read' })
+      let readBooks = await Book.find({ userId: user._id, bookshelf: 'Read' }).limit(3).lean()
+
+      const numRated = await Book.countDocuments({ userId: user._id, rating: { $exists: true } })
+      let ratedBooks = await Book.find({ userId: user._id, rating: { $exists: true } })
+        .limit(3)
+        .lean()
+
+      let books = [
+        { label: 'Owned', books: ownedBooks, count: numOwned },
+        { label: 'Want to read', books: wantToReadBooks, count: numWantToRead },
+        { label: 'Read', books: readBooks, count: numRead },
+        { label: 'Rated', books: ratedBooks, count: numRated },
+      ]
+
+      // for each array of books, get info from google books api
+      books = await Promise.all(
+        books.map(async group => {
+          group.books = await Promise.all(
+            group.books.map(async (book: any) => {
+              const { data } = await axios.get(
+                `https://www.googleapis.com/books/v1/volumes/${book.volumeId}`
+              )
+              return {
+                image: data.volumeInfo.imageLinks?.thumbnail,
+                averageRating: data.volumeInfo.averageRating,
+                ratingsCount: data.volumeInfo.ratingsCount,
+                pageCount: data.volumeInfo.pageCount,
+                categories: data.volumeInfo.categories,
+                ...book,
+              }
+            })
+          )
+          return group
+        })
+      )
+
+      const currentlyReading = await Book.find({
+        userId: user._id,
+        bookshelf: 'Currently reading',
+      }).lean()
+
+      // get book data for currently reading
+      const readingData = await Promise.all(
+        currentlyReading.map(async book => {
+          const { data } = await axios.get(
+            `https://www.googleapis.com/books/v1/volumes/${book.volumeId}`
+          )
+          return {
+            image: data.volumeInfo.imageLinks?.thumbnail,
+            averageRating: data.volumeInfo.averageRating,
+            ratingsCount: data.volumeInfo.ratingsCount,
+            pageCount: data.volumeInfo.pageCount,
+            categories: data.volumeInfo.categories,
+            ...book,
+          }
+        })
+      )
 
       return res.status(200).json({
-        user: {
-          ...user,
-          books,
-        },
+        ...user,
+        books,
+        currentlyReading: readingData,
       })
     } else {
       return res.status(404).json({ message: 'User not found' })
