@@ -71,10 +71,8 @@ export const searchBooks = async (req: Request, res: Response) => {
 export const getBook = async (req: Request, res: Response) => {
   try {
     const { userId, volumeId } = req.params
-    console.log(userId, volumeId)
 
     const book = await Book.findOne({ userId, volumeId })
-    console.log(book)
 
     return res.status(200).json({
       book,
@@ -100,9 +98,9 @@ export const getBookshelf = async (req: Request, res: Response) => {
 
     if (bookshelf === 'Owned') {
       where = { owned: true }
-    } else {
-      where = { bookshelf }
-    }
+    } else if (bookshelf === 'Rated') {
+      where = { rating: { $gt: 0 } }
+    } else where = { bookshelf }
 
     if (search) {
       where = {
@@ -187,19 +185,64 @@ export const deleteBook = async (req: Request, res: Response) => {
   }
 }
 
-// TODO: work in progress
-export const getRatingsByUser = async (req: Request, res: Response) => {
-  const { id } = req.params
-  const page = Number(req.query.page) || 1
+export const getBookshelfSummaries = async (req: Request, res: Response) => {
+  const { userId } = req.params
 
   try {
-    const ratedBooks = await Book.find({ userId: id, rating: { $exists: true } })
-      .sort({ dateRead: -1 })
+    const numRated = await Book.countDocuments({ userId, rating: { $gt: 0 } })
+    let ratedBooks = await Book.find({ userId, rating: { $gt: 0 } })
+      .limit(3)
       .lean()
 
-    // for each book, get info from google books api
-    const results = await Promise.all(
-      ratedBooks.map(async book => {
+    const numOwned = await Book.countDocuments({ userId, owned: true })
+    let ownedBooks = await Book.find({ userId, owned: true }).limit(3).lean()
+
+    const numWantToRead = await Book.countDocuments({
+      userId,
+      bookshelf: 'Want to read',
+    })
+    let wantToReadBooks = await Book.find({ userId, bookshelf: 'Want to read' }).limit(3).lean()
+
+    const numRead = await Book.countDocuments({ userId, bookshelf: 'Read' })
+    let readBooks = await Book.find({ userId, bookshelf: 'Read' }).limit(3).lean()
+
+    let books = [
+      { id: 'rated', label: 'Rated', books: ratedBooks, count: numRated },
+      { id: 'owned', label: 'Owned', books: ownedBooks, count: numOwned },
+      { id: 'want-to-read', label: 'Want to read', books: wantToReadBooks, count: numWantToRead },
+      { id: 'read', label: 'Read', books: readBooks, count: numRead },
+    ]
+
+    // for each array of books, get info from google books api
+    books = await Promise.all(
+      books.map(async group => {
+        group.books = await Promise.all(
+          group.books.map(async (book: any) => {
+            const { data } = await axios.get(
+              `https://www.googleapis.com/books/v1/volumes/${book.volumeId}`
+            )
+            return {
+              image: data.volumeInfo.imageLinks?.thumbnail,
+              averageRating: data.volumeInfo.averageRating,
+              ratingsCount: data.volumeInfo.ratingsCount,
+              pageCount: data.volumeInfo.pageCount,
+              categories: data.volumeInfo.categories,
+              ...book,
+            }
+          })
+        )
+        return group
+      })
+    )
+
+    const currentlyReading = await Book.find({
+      userId,
+      bookshelf: 'Currently reading',
+    }).lean()
+
+    // get book data for currently reading
+    const readingData = await Promise.all(
+      currentlyReading.map(async book => {
         const { data } = await axios.get(
           `https://www.googleapis.com/books/v1/volumes/${book.volumeId}`
         )
@@ -214,9 +257,61 @@ export const getRatingsByUser = async (req: Request, res: Response) => {
       })
     )
 
-    return res.status(200).json({ ratings: results })
+    return res.status(200).json({
+      books,
+      currentlyReading: readingData,
+    })
   } catch (err) {
-    console.error(err)
-    return res.status(500).json({ message: 'Internal server error' })
+    if (err instanceof Error) {
+      console.error(err)
+      return res.status(500).json({ message: 'Internal server error' })
+    }
+  }
+}
+
+export const getBookReviews = async (req: Request, res: Response) => {
+  const { volumeId, page } = req.params
+
+  const limit = 10
+  const skip = (Number(page) - 1) * limit
+
+  try {
+    // get all books by id with ratings/reviews
+    const totalReviews = await Book.count({
+      volumeId,
+      review: {
+        $exists: true,
+      },
+    })
+    const reviews: IBook[] = await Book.find({
+      volumeId,
+      rating: {
+        $gt: 0,
+      },
+      review: {
+        $exists: true,
+      },
+    })
+      .skip(skip)
+      .limit(limit)
+      .populate('userId') // include user data with review
+      .sort({
+        // sort by review date
+        'review.date': -1,
+      })
+      .lean()
+
+    const nextPage = totalReviews > limit * Number(page) ? Number(page) + 1 : null
+
+    return res.status(200).json({
+      reviews,
+      totalReviews,
+      nextPage,
+    })
+  } catch (err) {
+    if (err instanceof Error) {
+      console.error(err)
+      return res.status(500).json({ message: 'Internal server error' })
+    }
   }
 }
