@@ -207,10 +207,10 @@ export const getBookshelfSummaries = async (req: Request, res: Response) => {
     let readBooks = await Book.find({ userId, bookshelf: 'Read' }).limit(3).lean()
 
     let books = [
-      { id: 'rated', label: 'Rated', books: ratedBooks, count: numRated },
-      { id: 'owned', label: 'Owned', books: ownedBooks, count: numOwned },
       { id: 'want-to-read', label: 'Want to read', books: wantToReadBooks, count: numWantToRead },
       { id: 'read', label: 'Read', books: readBooks, count: numRead },
+      { id: 'rated', label: 'Rated', books: ratedBooks, count: numRated },
+      { id: 'owned', label: 'Owned', books: ownedBooks, count: numOwned },
     ]
 
     // for each array of books, get info from google books api
