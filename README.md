@@ -16,19 +16,21 @@ The `Book` schema defines the structure of the books stored in the database. Her
 
 ```typescript
 const BookSchema: Schema = new Schema({
-  volumeId: { type: String, required: true },
-  userId: { type: ObjectId, ref: 'User' },
-  bookshelf: { type: String, required: true },
-  owned: { type: Boolean, default: false },
-  read: { type: Date },
-  rating: { type: Number },
-  review: {
-    date: { type: Date },
-    text: { type: String },
-  },
-});
+  title: { type: String, required: true },
+  author: { type: String, required: true },
+  bookshelf: { type: String, required: true }, // bookshelf name (read, currently reading, want to read)
+  owned: { type: Boolean, default: false }, // to indicate if user owns the book
+  dateRead: { type: Date }, // date user finished reading book
+  rating: { type: Number }, // user's rating (1-5)
+  review: { date: { type: Date }, text: { type: String } }, // user's review
+
+  volumeId: { type: String, required: true }, // google books api volume id (for fetching book info)
+  userId: { type: ObjectId, ref: 'User' }, // link user to book
+})
 ```
 
+- `title` (required): The title of the book, used for searching in bookshelves.
+- `author` (required): The author of the book, used for searching in bookshelves.
 - `volumeId` (required): The Google Books API volume ID for fetching book information.
 - `userId`: References the User model and links the book to a specific user.
 - `bookshelf` (required): The name of the bookshelf where the book is categorized (read, currently reading, want to read).
@@ -125,10 +127,6 @@ Now the necessary environment variables are properly set, allowing your backend 
    ```shell
    npm run start:dev
    ```
-
-## API Documentation
-
-The API documentation is available at `<server-url>/api-docs` when the server is running. It provides details about the available endpoints and how to interact with them.
 
 ## Client Setup
 
